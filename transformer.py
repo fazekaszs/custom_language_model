@@ -329,7 +329,7 @@ class LanguageModel(nn.Module):
 
 def test_sentence(token_list: list[Token], language_model: LanguageModel, device: torch.device):
 
-    sentence_indices = [22, 28, 23, 5, ]
+    sentence_indices = [22, 28, 11, 23, 5, ]
     for idx in range(50):
 
         sentence_tensor = torch.tensor([sentence_indices, ], dtype=torch.int64, device=device)
@@ -426,8 +426,18 @@ def main():
 
         # Plot loss curve for the current epoch
         fig, ax = plt.subplots(1, 2)
-        ax[0].plot(epoch_losses)
-        ax[1].plot(epoch_accuracies)
+        fig.set_size_inches(12, 6)
+
+        ax[0].plot(epoch_losses, color="black")
+        ax[0].set_xlabel("batch index")
+        ax[0].set_ylabel("weighted cross entropy loss")
+        ax[0].set_yscale("log")
+
+        ax[1].plot(epoch_accuracies, color="black")
+        ax[1].set_xlabel("batch index")
+        ax[1].set_ylabel("batch accuracy")
+        ax[1].set_ylim(0, 1)
+
         fig.savefig(f"epoch{epoch}.png", dpi=300)
 
         # Save model
