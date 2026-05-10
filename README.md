@@ -94,7 +94,7 @@ most probable next token.
 Here is an example plot of the first epoch:
 
 <div style="text-align: center;">
-    <img src="https://github.com/fazekaszs/custom_language_model/blob/master/images/epoch0.png" alt="training" width=500/>
+    <img src="https://github.com/fazekaszs/custom_language_model/blob/master/images/epoch0.png" alt="training" width=800/>
 </div>
 
 ## Notable used and implemented features
