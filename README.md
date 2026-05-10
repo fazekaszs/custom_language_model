@@ -48,7 +48,24 @@ It implements the language model under several layers of abstraction:
   the deep transformer module, and finishes with a singe linear layer. Note that the outputs are
   logits, rather than probability mass functions, i.e. there isn't a final _SoftMax_ activation.
 
-## What is it trained on?
+The following hyperparameters were chosen (without giving it much thought):
+
+|            hyperparameter name            |   hyperparameter value    |
+|:-----------------------------------------:|:-------------------------:|
+|            embedding dimension            |            128            |
+|         query and key dimensions          |             8             |
+|              value dimension              |             8             |
+|    number of SDPA heads per MHA module    |             5             |
+| MLP hidden layer dimension and activation | 2 * value dimension, GeLU |
+|                model depth                |             4             |
+|                batch size                 |            256            |
+|               learning rate               |           1E-3            |
+
+With these settings, the model has 427,830 parameters in total.
+Matrix parameters for the embedding and SDPA layers were initialized from a normal distribution
+with 0 mean and a standard deviation of `1 / sqrt(dim)`.
+
+## What is it trained on and how is it trained?
 
 The model is trained on a tiny corpus of Hungarian text, specifically on the book called 
 _Egri csillagok_ from _Géza Gárdonyi_.
@@ -57,7 +74,7 @@ It was downloaded from the website of the
 The whole book was copied to a single txt file and some rare characters and substring (like `=` or
 numbers between square brackets) were removed.
 After tokenization, a vocabulary size of 310 tokens was achieved with the main text containing 
-536'238 tokens.
+536,238 tokens.
 The training loss was a weighted cross entropy loss, where the weights are the inverse square roots
 of token occurrences.
 A batch size of 256 was used with a context size of 100 (or, rather, 99, due to autoregression).
@@ -69,8 +86,36 @@ Training was followed through the loss and accuracy metrics.
 Accuracy was not weighted.
 These loss and accuracy curves were plotted after every epoch.
 The model was also saved as a `.pt` file after every epoch.
+Finally, also after every epoch, a text sentence is generated (deterministically) starting
+from the seed text `<CAPITAL>|gergely| |folytatta|:` (token indices `[22, 28, 11, 23, 5, ]`,
+tokens are separated with a `|` character for clarity).
+The deterministic generation corresponds to a temperature 0 generation, i.e. by selecting the
+most probable next token.
+Here is an example plot of the first epoch:
 
-## Used and implemented features
+<div style="text-align: center;">
+    <img src="https://github.com/fazekaszs/custom_language_model/blob/master/images/epoch0.png" alt="training" width=500/>
+</div>
 
-- PyTorch's `Dataset` and `DataLoader` classes,
-- ...
+## Notable used and implemented features
+
+- tokenization implementation,
+- PyTorch's built-in `Dataset` and `DataLoader` classes,
+- embedding layer implementation,
+- rotary positional encoding (RoPE) implementation, 
+- PyTorch's built-in `LayerNorm` layer,
+- SDPA, MHA and transformer layer implementations,
+- PyTorch's built-in `Adam` optimizer,
+- optional training on CUDA compatible GPUs,
+- (weighted) cross entropy loss and accuracy monitoring,
+- checkpoint `.pt` file writing,
+- switching between training and evaluation modes
+
+## Planned additions
+
+- inclusion of test and validation sets,
+- learning rate scheduling,
+- weight decay,
+- forward and backward hooks for monitoring activations and gradients,
+- ablation studies and hyperparameter optimization,
+- optional gating incorporation into the SDPA module
